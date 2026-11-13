@@ -1,0 +1,36 @@
+Node runtime: v20.20.1
+
+Syntax checks passed: server.mjs, src-core.mjs, public/app.js, tests/app.test.mjs
+
+TAP version 13
+# Subtest: UTC normalization, zero preserved, non-finite rejected
+ok 1 - UTC normalization, zero preserved, non-finite rejected
+  ---
+  duration_ms: 7.221708
+  ...
+# Subtest: CSV quoting, quoted newlines, BOM and formula protection
+ok 2 - CSV quoting, quoted newlines, BOM and formula protection
+  ---
+  duration_ms: 1.014908
+  ...
+# Subtest: equal weights for sensors then devices and flagged exclusion
+ok 3 - equal weights for sensors then devices and flagged exclusion
+  ---
+  duration_ms: 0.539835
+  ...
+# Subtest: HTTP demo and authenticated live CSV import, boundaries and duplicates
+ok 4 - HTTP demo and authenticated live CSV import, boundaries and duplicates
+  ---
+  duration_ms: 255.490081
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 313.804812
+
+Not tested: real TSI credentials/API calls, browser rendering, PNG rendering, map tile delivery, production security/load, long-running worker resilience. No real credentials used.

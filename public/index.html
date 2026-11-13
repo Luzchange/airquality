@@ -1,0 +1,163 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Aero / Air quality</title><link rel="stylesheet" href="/style.css"><script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script><script defer src="/app.js"></script></head><body><aside><a class="brand" href="/">aero /</a><p>ENVIRONMENTAL INTELLIGENCE</p><nav><a href="#overview">Overview</a><a href="#thermal">Thermal stress (WBGT)</a><a href="#network">Sensors</a><a href="#analytics">Diurnal & AQI charts</a><a href="#analysis">Rotation analysis</a><a href="#reports">Reports & archive</a></nav></aside><main id="overview"><header><div><p class="eyebrow">WORKSPACE / AIR QUALITY</p><h1>A clearer view of your environment.</h1><p class="muted">Monitoring, thermal stress compliance, and sensor analytics in one place.</p></div><span id="mode" class="badge">Loading</span></header><div id="notice" role="status" aria-live="polite">Loading measurements…</div>
+
+<section class="panel wbgt-panel" id="thermal">
+  <div class="panelhead">
+    <div>
+      <p class="eyebrow">BIOENVIRONMENTAL / THERMAL STRESS</p>
+      <h2>Wet Bulb Globe Temperature (WBGT)</h2>
+      <p class="muted">Current thermal conditions & guidelines per DAFI 48-151 (Thermal Stress Program)</p>
+    </div>
+    <div id="wbgt-flag-badge" class="wbgt-flag-pill">Loading Flag…</div>
+  </div>
+  <div class="wbgt-grid">
+    <div class="wbgt-metric-card">
+      <div class="wbgt-metric-lbl">WBGT Index</div>
+      <div class="wbgt-metric-val" id="wbgt-val">— °F</div>
+      <small id="wbgt-category" class="muted">Calculating…</small>
+    </div>
+    <div class="wbgt-metric-card">
+      <div class="wbgt-metric-lbl">Ambient Temp</div>
+      <div class="wbgt-metric-val" id="wbgt-temp">— °F</div>
+      <small class="muted">Dry bulb</small>
+    </div>
+    <div class="wbgt-metric-card">
+      <div class="wbgt-metric-lbl">Relative Humidity</div>
+      <div class="wbgt-metric-val" id="wbgt-rh">— %</div>
+      <small class="muted">Atmospheric moisture</small>
+    </div>
+    <div class="wbgt-metric-card">
+      <div class="wbgt-metric-lbl">Wind Speed</div>
+      <div class="wbgt-metric-val" id="wbgt-wind">— mph</div>
+      <small class="muted">Surface wind</small>
+    </div>
+  </div>
+  <div class="wbgt-gear-selector-bar">
+    <label class="gear-label"><strong>Ensemble / Gear Worn (DAFI 48-151 Adjustment):</strong>
+      <select id="wbgt-gear-select">
+        <option value="0">Standard Uniform / Utility (No adjustment: +0°F)</option>
+        <option value="5">Body Armor / Plate Carrier (+5°F)</option>
+        <option value="10">Chemical Defense (MOPP Gear - Light Work: +10°F)</option>
+        <option value="20">MOPP Gear / Bunker Gear (Mod/Hard Work: +20°F)</option>
+      </select>
+    </label>
+    <div class="effective-wbgt-tag">Effective WBGT: <strong id="effective-wbgt-val">— °F</strong></div>
+  </div>
+
+  <div class="wbgt-table-wrap">
+    <table class="wbgt-workrest-table">
+      <thead>
+        <tr>
+          <th>Current Flag</th>
+          <th>Workload Intensity</th>
+          <th>Mandated Work / Rest</th>
+          <th>Water Intake</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="3" id="table-flag-cell" class="flag-indicator-cell">Loading…</td>
+          <td><strong>Easy</strong> (Sitting/Standing, Guard, Driving)</td>
+          <td id="wr-easy">—</td>
+          <td id="water-easy">—</td>
+        </tr>
+        <tr>
+          <td><strong>Moderate</strong> (Walking, Light Maintenance, Calisthenics)</td>
+          <td id="wr-mod">—</td>
+          <td id="water-mod">—</td>
+        </tr>
+        <tr>
+          <td><strong>Hard / Heavy</strong> (Ruck, Loading, Construction, Sprinting)</td>
+          <td id="wr-hard">—</td>
+          <td id="water-hard">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="guidance-note" style="padding: 0 24px 18px;">
+    <small>⚠️ Fluid intake limits: Do not exceed 1.5 quarts/hour or 12 quarts/day to prevent hyponatremia. Rest must be taken in full shade if available.</small>
+  </div>
+  <details class="wbgt-history-details">
+    <summary><strong>View 90-Day WBGT Daily Historical Log</strong></summary>
+    <div class="table-wrap" style="margin-top:12px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Peak WBGT (°F)</th>
+            <th>DAFI 48-151 Flag</th>
+            <th>High Temp (°F)</th>
+            <th>Low Temp (°F)</th>
+          </tr>
+        </thead>
+        <tbody id="wbgt-history-table"></tbody>
+      </table>
+    </div>
+  </details>
+</section>
+
+<section class="filters" aria-label="Report filters"><label>From<input id="start" type="date"></label><label>Through<input id="end" type="date"></label><label>Measurement<select id="metric"><option value="mcpm2x5">PM2.5</option><option value="mcpm10">PM10</option><option value="co2_ppm">CO₂</option><option value="temperature">Temperature</option><option value="rh">Humidity</option></select></label><label>Device<select id="device"><option value="">All devices</option></select></label><label>Interval<select id="group"><option value="day">Daily</option><option value="hour">Hourly</option></select></label><button id="apply">Apply filters</button><button id="rotation" class="secondary">Past 90 days</button><button id="recent" class="secondary">Past 7 days</button></section>
+
+<section class="kpis"><article><span>Period mean</span><h2 id="mean">—</h2><small>Equal-weight sensor / device / bucket means</small></article><article><span>Peak valid reading</span><h2 id="peak">—</h2><small>Highest unflagged sample</small></article><article><span>Time-bucket coverage</span><h2 id="coverage">—</h2><small id="coverage-detail">Not sensor uptime</small></article><article><span>Logged samples</span><h2 id="samples">—</h2><small id="sample-detail"></small></article></section>
+
+<section class="panel" id="network">
+  <div class="panelhead">
+    <div>
+      <p class="eyebrow">MONITORING SENSORS</p>
+      <h2>Active TSI Instruments & Live Readings</h2>
+    </div>
+    <div class="sensor-header-actions">
+      <button id="toggle-standby-btn" class="secondary toggle-btn">Show Standby (Velma & Fred)</button>
+      <span class="muted" id="sensor-count">4 active instruments</span>
+    </div>
+  </div>
+  <div class="sensor-cards" id="sensor-cards"></div>
+</section>
+
+<section class="panel" id="analytics">
+  <div class="panelhead">
+    <div>
+      <p class="eyebrow">EXCEL WORKBOOK ANALYTICS</p>
+      <h2>Diurnal Hourly Profile & EPA AQI Benchmarks</h2>
+      <p class="muted">24-hour diurnal curve with EPA PM2.5 thresholds (Moderate, SG, Unhealthy, Very Unhealthy, Hazardous)</p>
+    </div>
+    <div class="analytics-header-controls">
+      <label class="inline-select-label">Sensor:
+        <select id="analytics-sensor-select">
+          <option value="">All Active Sensors</option>
+          <option value="SHAGGY">SHAGGY - LSA</option>
+          <option value="SCOOBY">SCOOBY - ECP</option>
+          <option value="DAPHNE">DAPHNE - COCO</option>
+          <option value="SCRAPPY">SCRAPPY - Camp Simba</option>
+        </select>
+      </label>
+      <button id="download-excel-btn" class="dl-btn">📥 Download Excel (.csv)</button>
+    </div>
+  </div>
+  <div class="chart-container-large">
+    <canvas id="diurnalChart"></canvas>
+  </div>
+  <div class="analytics-subgrid">
+    <div class="subchart-card">
+      <h3>AQI Exposure Distribution (Hours in Category)</h3>
+      <p class="muted">Total logged exposure time across active sensor locations</p>
+      <div class="chart-container-med">
+        <canvas id="exposureChart"></canvas>
+      </div>
+    </div>
+    <div class="location-summary-card">
+      <h3>Monitoring Sites (Workbook Mapping)</h3>
+      <div class="loc-list">
+        <div class="loc-item"><strong>SHAGGY:</strong> LSA (Living Support Area)</div>
+        <div class="loc-item"><strong>SCOOBY:</strong> ECP (Entry Control Point)</div>
+        <div class="loc-item"><strong>DAPHNE:</strong> COCO (Flightline)</div>
+        <div class="loc-item"><strong>SCRAPPY:</strong> Camp Simba</div>
+        <div class="loc-item muted"><strong>VELMA / FRED:</strong> Standby (Offline)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="analysis"><div class="panelhead"><div><p class="eyebrow">ROTATION INSIGHTS</p><h2 id="chart-title">Air quality summary</h2><p id="range" class="muted"></p></div><button id="graph" class="secondary">Download graph (PNG)</button></div><div class="chart"><canvas id="chart" role="img" aria-label="Air quality concentration trend"></canvas></div><details><summary>View chart data table</summary><div class="table-wrap"><table><thead><tr><th>UTC bucket</th><th>Mean</th><th>Minimum</th><th>Maximum</th><th>Devices</th></tr></thead><tbody id="table"></tbody></table></div></details></section>
+
+<section class="panel" id="reports"><div class="panelhead"><div><p class="eyebrow">REPORTING & ARCHIVE</p><h2>Take your data further.</h2></div></div><div class="report-grid"><article><h3>Download logged data</h3><p>CSV uses the applied graph filters and includes quality flags, sensor identity, and provenance.</p><button id="csv">Download CSV</button></article><article><h3>Restore historical records</h3><p>Import normalized historical CSV. Review the documented schema before confirming.</p><label>Historical CSV<input type="file" id="upload" accept=".csv,text/csv"></label><button id="import" class="secondary">Import CSV</button></article><article><h3>Synchronize instruments</h3><p>Fetch the last five days from TSI Link. The included worker logs data without a browser tab.</p><button id="sync" class="secondary">Sync TSI Link</button><small id="synced"></small></article></div></section>
+<footer>Local single-operator starter. Concentration summaries and WBGT flags follow military bioenvironmental standards (DAFI 48-151).</footer></main></body></html>

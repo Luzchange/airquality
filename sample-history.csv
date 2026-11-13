@@ -1,0 +1,3 @@
+account_id,device_id,sensor_id,timestamp,metric,value,unit,quality,source
+synthetic-account,synthetic-device,synthetic-sensor,2026-04-01T00:00:00Z,mcpm2x5,10,µg/m³,valid,synthetic-example
+synthetic-account,synthetic-device,synthetic-sensor,2026-09-30T23:59:59Z,mcpm2x5,20,µg/m³,valid,synthetic-example

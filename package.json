@@ -1,0 +1,17 @@
+{
+  "name": "aero-air-quality",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.mjs",
+    "dev": "node --env-file-if-exists=.env server.mjs",
+    "worker": "node --env-file-if-exists=.env server.mjs worker",
+    "sync": "node --env-file-if-exists=.env server.mjs sync",
+    "test": "node --test",
+    "check": "node --check server.mjs && node --check src-core.mjs && node --check public/app.js"
+  }
+}
