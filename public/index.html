@@ -79,7 +79,10 @@
   <details class="wbgt-history-details" open>
     <summary style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
       <span><strong>View 90-Day WBGT Daily Historical Log & Black Flag Tracking</strong></span>
-      <a href="/api/wbgt-history/csv" download class="dl-btn" style="text-decoration:none;font-weight:600;font-size:11px;padding:6px 12px;margin-left:auto;">📥 Download 90-Day WBGT CSV</a>
+      <div style="display:flex;gap:8px;align-items:center;margin-left:auto;">
+        <span class="muted" style="font-size:11px;">Tracks all Black Flag (&ge;90°F) start times, stop times & total durations</span>
+        <a href="/api/wbgt-history/csv" download class="dl-btn" style="text-decoration:none;font-weight:600;font-size:11px;padding:6px 12px;">📥 Download 90-Day WBGT CSV</a>
+      </div>
     </summary>
     <div class="table-wrap" style="margin-top:12px;">
       <table>
@@ -88,8 +91,8 @@
             <th>Date</th>
             <th>Peak WBGT (°F)</th>
             <th>DAFI 48-151 Flag</th>
-            <th>Black Flag Started</th>
-            <th>Black Flag Stopped</th>
+            <th>Black Flag Start Time</th>
+            <th>Black Flag Stop Time</th>
             <th>Black Flag Duration</th>
             <th>High Temp (°F)</th>
             <th>Low Temp (°F)</th>
