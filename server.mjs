@@ -7,12 +7,40 @@ import {parseCSV,normalize,buildSummary,csvCell} from './src-core.mjs';
 const ROOT=dirname(fileURLToPath(import.meta.url));
 const DEMO=process.env.DEMO_MODE!=='false', PORT=Number(process.env.PORT||3000);
 const USER=process.env.PORTAL_USER||'', PASS=process.env.PORTAL_PASSWORD||'';
-const STORE=resolve(process.env.DATA_PATH||`${ROOT}/data/${DEMO?'demo':'live'}.json`);
-const API='https://api-prd.tsilink.com/api/v3/external';
-const M={mcpm2x5:['PM2.5','µg/m³'],mcpm10:['PM10','µg/m³'],co2_ppm:['CO₂','ppm'],temperature:['Temperature','°C'],rh:['Humidity','%']};
-let data={devices:[],readings:[],lastSync:null},token='',expiry=0,syncing=false,job=null,writeQueue=Promise.resolve();
-async function persist(){const snapshot=JSON.stringify(data);writeQueue=writeQueue.catch(()=>{}).then(async()=>{await mkdir(dirname(STORE),{recursive:true});await writeFile(STORE,snapshot,{mode:0o600})});await writeQueue}
-try{data=JSON.parse(await readFile(STORE,'utf8'))}catch(e){if(e.code!=='ENOENT')throw e}
+const IS_VERCEL = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DEFAULT_STORE = IS_VERCEL
+  ? `/tmp/data_${DEMO ? 'demo' : 'live'}.json`
+  : `${ROOT}/data/${DEMO ? 'demo' : 'live'}.json`;
+const STORE = resolve(process.env.DATA_PATH || DEFAULT_STORE);
+const SEED_STORE = resolve(`${ROOT}/data/seed-live.json`);
+const API = 'https://api-prd.tsilink.com/api/v3/external';
+const M = { mcpm2x5: ['PM2.5', 'µg/m³'], mcpm10: ['PM10', 'µg/m³'], co2_ppm: ['CO₂', 'ppm'], temperature: ['Temperature', '°C'], rh: ['Humidity', '%'] };
+let data = { devices: [], readings: [], lastSync: null }, token = '', expiry = 0, syncing = false, job = null, writeQueue = Promise.resolve();
+
+async function persist() {
+  const snapshot = JSON.stringify(data);
+  writeQueue = writeQueue.catch(() => {}).then(async () => {
+    try {
+      await mkdir(dirname(STORE), { recursive: true });
+      await writeFile(STORE, snapshot, { mode: 0o600 });
+    } catch (e) {
+      console.warn('Persist warning (e.g. read-only filesystem):', e.message);
+    }
+  });
+  await writeQueue;
+}
+
+try {
+  data = JSON.parse(await readFile(STORE, 'utf8'));
+} catch (e) {
+  if (e.code !== 'ENOENT') console.warn('Could not read STORE:', e.message);
+  // In live mode on serverless, load seed data if available
+  if (!DEMO && (!data.readings || !data.readings.length)) {
+    try {
+      data = JSON.parse(await readFile(SEED_STORE, 'utf8'));
+    } catch {}
+  }
+}
 function demo(){for(let j=0;j<3;j++){const id=`demo-${j+1}`;data.devices.push({id,name:['North perimeter','Operations compound','South perimeter'][j],lat:40.708+j*.01,lon:-74.008+j*.008});for(let d=0;d<183;d++){if(d>=71&&d<76)continue;for(const h of [0,6,12,18]){const timestamp=new Date(Date.UTC(2026,3,1+d,h)).toISOString(),pm=10+j*2+4*Math.sin(d/11)+(d>100&&d<110?18:0);for(const [metric,value] of [['mcpm2x5',pm],['mcpm10',pm*1.6],['co2_ppm',480+j*60+30*Math.sin(d)],['temperature',22+5*Math.sin(d/55)],['rh',45+12*Math.sin(d/20)]])data.readings.push({accountId:'demo',deviceId:id,sensorId:'demo-sensor',timestamp,metric,value:+value.toFixed(2),unit:M[metric][1],quality:d===10&&h===12?'flagged':'valid',source:'synthetic'})}}}}
 if(DEMO&&!data.readings.length)demo();
 function constant(a,b){return timingSafeEqual(createHash('sha256').update(a).digest(),createHash('sha256').update(b).digest())}
@@ -26,6 +54,7 @@ function upsert(rows){const key=x=>JSON.stringify([x.accountId,x.deviceId,x.sens
 async function sync(days=2){if(DEMO)throw Error('Switch to live mode before synchronizing.');if(syncing)throw Error('A sync is already running.');if(!Number.isInteger(days)||days<1||days>89)throw Error('Backfill must be 1–89 days.');syncing=true;job={status:'running',processed:0,started:new Date().toISOString()};try{const rawDevices=await tsi('/devices');const devList=rawDevices.map(d=>({id:d.device_id,name:d.metadata?.friendlyName,lat:d.metadata?.latitude,lon:d.metadata?.longitude}));mergeDevices(devList);const end=new Date();for(const d of devList){let start=new Date(+end-days*86400000);while(start<end){const stop=new Date(Math.min(+start+86400000,+end)),rows=await tsi('/telemetry',{device_id:d.id,start_date:start.toISOString(),end_date:stop.toISOString()}),normalized=[];for(const row of rows){mergeDevices([{id:row.cloud_device_id,name:row.metadata?.friendly_name,lat:row.metadata?.location?.latitude,lon:row.metadata?.location?.longitude}]);for(const [si,s] of (row.sensors||[]).entries())for(const x of s.measurements||[]){if(!M[x.type]||x.data?.value==null)continue;normalized.push(normalize({account_id:row.cloud_account_id,device_id:row.cloud_device_id,sensor_id:s.serial||`${s.model||s.type||'sensor'}:${si}`,timestamp:x.data.timestamp,metric:x.type,value:x.data.value,unit:x.unit,quality:row.system_status_int||row.system_status?.length||s.status_int||s.status?.length?'flagged':'valid',source:'tsi'}))}}upsert(normalized);job.processed+=normalized.length;await persist();start=stop}}data.lastSync=new Date().toISOString();await persist();job.status='complete';return job}catch(e){job.status='failed';job.error=e.message;throw e}finally{syncing=false}}
 function filter(url){const now=new Date();const defaultStart=new Date(+now-89*86400000).toISOString().slice(0,10);const defaultEnd=now.toISOString().slice(0,10);const start=url.searchParams.get('start')||defaultStart,end=url.searchParams.get('end')||defaultEnd,metric=url.searchParams.get('metric')||'mcpm2x5',device=url.searchParams.get('device')||'',group=url.searchParams.get('group')||'day';if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end))throw Error('Use YYYY-MM-DD dates.');const a=new Date(start+'T00:00:00Z'),e=new Date(end+'T00:00:00Z');if(!Number.isFinite(+a)||!Number.isFinite(+e)||a.toISOString().slice(0,10)!==start||e.toISOString().slice(0,10)!==end)throw Error('Invalid date.');const b=new Date(+e+86400000);if(b<=a)throw Error('Choose a valid date range.');const daysSpan=(b-a)/86400000;if(daysSpan>90)throw Error('Date range cannot exceed 90 days due to TSI upstream API limits.');if(!M[metric]||!['hour','day'].includes(group))throw Error('Invalid metric or interval.');return {a,b,metric,group,rows:data.readings.filter(x=>x.timestamp>=a.toISOString()&&x.timestamp<b.toISOString()&&x.metric===metric&&(!device||x.deviceId===device))}}
 const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localhost');if(!DEMO&&(!USER||!PASS))return send(res,503,{error:'Live mode requires PORTAL_USER and PORTAL_PASSWORD.'});if(!authenticated(req)){res.writeHead(401,{'WWW-Authenticate':'Basic realm="Aero"'});return res.end('Authentication required')}if(req.method==='POST'&&req.headers['x-portal-request']!=='1')return send(res,403,{error:'Missing same-origin request header.'});
+if(req.method==='GET'&&url.pathname==='/api/config')return send(res,200,{demo:DEMO,lastSync:data.lastSync});
 if(req.method==='GET'&&url.pathname==='/api/wbgt'){
   try {
     const lat=11.5168, lon=43.0614;

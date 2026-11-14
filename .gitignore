@@ -2,6 +2,8 @@
 .env.*
 !.env.example
 data/
+!data/seed-live.json
 node_modules/
 *.log
 .DS_Store
+
