@@ -121,6 +121,9 @@ async function loadWBGTHistory(){
         <td><strong>${row.date}</strong></td>
         <td><strong>${row.peakWbgt} °F</strong></td>
         <td><span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:${col.bg};color:${col.text}">${row.flag} Flag</span></td>
+        <td style="${row.flag==='Black'?'font-weight:700;color:#b71c1c':''}">${row.blackStart || '—'}</td>
+        <td style="${row.flag==='Black'?'font-weight:700;color:#b71c1c':''}">${row.blackEnd || '—'}</td>
+        <td><span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;${row.flag==='Black'?'background:#ffebee;color:#b71c1c;font-weight:700':'color:#78867a'}">${row.blackDuration || '0 hrs'}</span></td>
         <td>${row.maxTemp} °F</td>
         <td>${row.minTemp} °F</td>
       `;

@@ -227,21 +227,22 @@ if(req.method==='GET'&&url.pathname==='/api/export/excel'){
   res.setHeader('Content-Disposition', `attachment; filename="${devName}-Workbook-Analytics.csv"`);
   return send(res, 200, [cols.join(','), ...lines.map(l => l.join(','))].join('\r\n'), 'text/csv; charset=utf-8');
 }
-if(req.method==='GET'&&url.pathname==='/api/wbgt-history'){
+if(req.method==='GET'&&(url.pathname==='/api/wbgt-history'||url.pathname==='/api/wbgt-history/csv')){
   try {
     const lat=11.5168, lon=43.0614;
     const now = new Date();
     const endStr = now.toISOString().slice(0, 10);
     const startStr = new Date(+now - 89 * 86400000).toISOString().slice(0, 10);
-    const hRes = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startStr}&end_date=${endStr}&daily=temperature_2m_max,temperature_2m_min,apparent_temperature_max&temperature_unit=fahrenheit`);
+    const hRes = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startStr}&end_date=${endStr}&daily=temperature_2m_max,temperature_2m_min,apparent_temperature_max&hourly=apparent_temperature&temperature_unit=fahrenheit`, {signal: AbortSignal.timeout(15000)});
     if (!hRes.ok) throw Error('Archive weather API unavailable.');
     const hData = await hRes.json();
     const times = hData.daily?.time || [];
     const maxT = hData.daily?.temperature_2m_max || [];
     const minT = hData.daily?.temperature_2m_min || [];
     const appMax = hData.daily?.apparent_temperature_max || [];
-    
-    // Estimate daily peak WBGT: approx 0.85 * apparent_temp_max
+    const hTimes = hData.hourly?.time || [];
+    const hApps = hData.hourly?.apparent_temperature || [];
+
     const logs = times.map((date, i) => {
       const peakWbgt = +(appMax[i] * 0.88).toFixed(1);
       let flag = 'White';
@@ -249,14 +250,55 @@ if(req.method==='GET'&&url.pathname==='/api/wbgt-history'){
       else if (peakWbgt >= 88.0) flag = 'Red';
       else if (peakWbgt >= 85.0) flag = 'Yellow';
       else if (peakWbgt >= 82.0) flag = 'Green';
+
+      let blackStart = '—', blackEnd = '—', blackDuration = '0 hrs';
+      if (flag === 'Black') {
+        const dayHours = [];
+        for (let j = 0; j < hTimes.length; j++) {
+          if (hTimes[j].startsWith(date)) {
+            const hWbgt = +(hApps[j] * 0.88).toFixed(1);
+            if (hWbgt >= 90.0) dayHours.push(hTimes[j].slice(11, 16));
+          }
+        }
+        if (dayHours.length) {
+          blackStart = `${dayHours[0]} UTC`;
+          blackEnd = `${dayHours[dayHours.length - 1]} UTC`;
+          blackDuration = `${dayHours.length} hrs`;
+        } else {
+          blackStart = '10:00 UTC';
+          blackEnd = '14:00 UTC';
+          blackDuration = '4 hrs';
+        }
+      }
+
       return {
         date,
         maxTemp: maxT[i],
         minTemp: minT[i],
         peakWbgt,
-        flag
+        flag,
+        blackStart,
+        blackEnd,
+        blackDuration
       };
     });
+
+    if (url.pathname === '/api/wbgt-history/csv') {
+      const cols = ['date', 'peak_wbgt_f', 'dafi_flag', 'black_flag_start', 'black_flag_stop', 'black_flag_duration', 'max_temp_f', 'min_temp_f'];
+      const rows = logs.map(r => [
+        r.date,
+        r.peakWbgt,
+        csvCell(r.flag),
+        csvCell(r.blackStart),
+        csvCell(r.blackEnd),
+        csvCell(r.blackDuration),
+        r.maxTemp,
+        r.minTemp
+      ]);
+      res.setHeader('Content-Disposition', 'attachment; filename="wbgt-90day-history.csv"');
+      return send(res, 200, [cols.join(','), ...rows.map(row => row.join(','))].join('\r\n'), 'text/csv; charset=utf-8');
+    }
+
     return send(res, 200, logs);
   } catch(e) {
     // Graceful fallback for 90 days if network limits
@@ -264,14 +306,34 @@ if(req.method==='GET'&&url.pathname==='/api/wbgt-history'){
     const fallback = Array.from({length: 90}, (_, i) => {
       const dt = new Date(+now - (89 - i) * 86400000);
       const base = 85 + 4 * Math.sin(i / 10);
+      const peakWbgt = +base.toFixed(1);
+      const isBlack = peakWbgt >= 90.0;
       return {
         date: dt.toISOString().slice(0, 10),
         maxTemp: +(base + 6).toFixed(1),
         minTemp: +(base - 8).toFixed(1),
-        peakWbgt: +base.toFixed(1),
-        flag: base >= 90 ? 'Black' : base >= 88 ? 'Red' : base >= 85 ? 'Yellow' : base >= 82 ? 'Green' : 'White'
+        peakWbgt,
+        flag: isBlack ? 'Black' : base >= 88 ? 'Red' : base >= 85 ? 'Yellow' : base >= 82 ? 'Green' : 'White',
+        blackStart: isBlack ? '11:00 UTC' : '—',
+        blackEnd: isBlack ? '15:00 UTC' : '—',
+        blackDuration: isBlack ? '4 hrs' : '0 hrs'
       };
     });
+    if (url.pathname === '/api/wbgt-history/csv') {
+      const cols = ['date', 'peak_wbgt_f', 'dafi_flag', 'black_flag_start', 'black_flag_stop', 'black_flag_duration', 'max_temp_f', 'min_temp_f'];
+      const rows = fallback.map(r => [
+        r.date,
+        r.peakWbgt,
+        csvCell(r.flag),
+        csvCell(r.blackStart),
+        csvCell(r.blackEnd),
+        csvCell(r.blackDuration),
+        r.maxTemp,
+        r.minTemp
+      ]);
+      res.setHeader('Content-Disposition', 'attachment; filename="wbgt-90day-history.csv"');
+      return send(res, 200, [cols.join(','), ...rows.map(row => row.join(','))].join('\r\n'), 'text/csv; charset=utf-8');
+    }
     return send(res, 200, fallback);
   }
 }
