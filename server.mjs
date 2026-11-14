@@ -245,29 +245,31 @@ if(req.method==='GET'&&(url.pathname==='/api/wbgt-history'||url.pathname==='/api
 
     const logs = times.map((date, i) => {
       const peakWbgt = +(appMax[i] * 0.88).toFixed(1);
-      let flag = 'White';
-      if (peakWbgt >= 90.0) flag = 'Black';
-      else if (peakWbgt >= 88.0) flag = 'Red';
-      else if (peakWbgt >= 85.0) flag = 'Yellow';
-      else if (peakWbgt >= 82.0) flag = 'Green';
+      let flag = 'White', threshold = 0;
+      if (peakWbgt >= 90.0) { flag = 'Black'; threshold = 90.0; }
+      else if (peakWbgt >= 88.0) { flag = 'Red'; threshold = 88.0; }
+      else if (peakWbgt >= 85.0) { flag = 'Yellow'; threshold = 85.0; }
+      else if (peakWbgt >= 82.0) { flag = 'Green'; threshold = 82.0; }
 
-      let blackStart = '—', blackEnd = '—', blackDuration = '0 hrs';
-      if (flag === 'Black') {
+      let flagStart = '—', flagEnd = '—', flagDuration = '0 hrs';
+      if (threshold > 0) {
         const dayHours = [];
         for (let j = 0; j < hTimes.length; j++) {
           if (hTimes[j].startsWith(date)) {
             const hWbgt = +(hApps[j] * 0.88).toFixed(1);
-            if (hWbgt >= 90.0) dayHours.push(hTimes[j].slice(11, 16));
+            if (hWbgt >= threshold) dayHours.push(hTimes[j].slice(11, 16));
           }
         }
         if (dayHours.length) {
-          blackStart = `${dayHours[0]} UTC`;
-          blackEnd = `${dayHours[dayHours.length - 1]} UTC`;
-          blackDuration = `${dayHours.length} hrs`;
+          flagStart = `${dayHours[0]} UTC`;
+          flagEnd = `${dayHours[dayHours.length - 1]} UTC`;
+          flagDuration = `${dayHours.length} hrs`;
         } else {
-          blackStart = '10:00 UTC';
-          blackEnd = '14:00 UTC';
-          blackDuration = '4 hrs';
+          // If hourly estimate is tight around peak, default to 2–4 hours centered on midday
+          const defDur = flag === 'Black' ? 4 : flag === 'Red' ? 3 : 2;
+          flagStart = '10:00 UTC';
+          flagEnd = `${10 + defDur}:00 UTC`;
+          flagDuration = `${defDur} hrs`;
         }
       }
 
@@ -277,21 +279,21 @@ if(req.method==='GET'&&(url.pathname==='/api/wbgt-history'||url.pathname==='/api
         minTemp: minT[i],
         peakWbgt,
         flag,
-        blackStart,
-        blackEnd,
-        blackDuration
+        flagStart,
+        flagEnd,
+        flagDuration
       };
     });
 
     if (url.pathname === '/api/wbgt-history/csv') {
-      const cols = ['date', 'peak_wbgt_f', 'dafi_flag', 'black_flag_start', 'black_flag_stop', 'black_flag_duration', 'max_temp_f', 'min_temp_f'];
+      const cols = ['date', 'peak_wbgt_f', 'dafi_flag', 'flag_start_time', 'flag_stop_time', 'flag_duration', 'max_temp_f', 'min_temp_f'];
       const rows = logs.map(r => [
         r.date,
         r.peakWbgt,
         csvCell(r.flag),
-        csvCell(r.blackStart),
-        csvCell(r.blackEnd),
-        csvCell(r.blackDuration),
+        csvCell(r.flagStart),
+        csvCell(r.flagEnd),
+        csvCell(r.flagDuration),
         r.maxTemp,
         r.minTemp
       ]);
@@ -307,27 +309,28 @@ if(req.method==='GET'&&(url.pathname==='/api/wbgt-history'||url.pathname==='/api
       const dt = new Date(+now - (89 - i) * 86400000);
       const base = 85 + 4 * Math.sin(i / 10);
       const peakWbgt = +base.toFixed(1);
-      const isBlack = peakWbgt >= 90.0;
+      const flag = peakWbgt >= 90 ? 'Black' : peakWbgt >= 88 ? 'Red' : peakWbgt >= 85 ? 'Yellow' : peakWbgt >= 82 ? 'Green' : 'White';
+      const durHours = flag === 'Black' ? 4 : flag === 'Red' ? 3 : flag === 'Yellow' ? 2 : flag === 'Green' ? 1 : 0;
       return {
         date: dt.toISOString().slice(0, 10),
         maxTemp: +(base + 6).toFixed(1),
         minTemp: +(base - 8).toFixed(1),
         peakWbgt,
-        flag: isBlack ? 'Black' : base >= 88 ? 'Red' : base >= 85 ? 'Yellow' : base >= 82 ? 'Green' : 'White',
-        blackStart: isBlack ? '11:00 UTC' : '—',
-        blackEnd: isBlack ? '15:00 UTC' : '—',
-        blackDuration: isBlack ? '4 hrs' : '0 hrs'
+        flag,
+        flagStart: durHours > 0 ? '11:00 UTC' : '—',
+        flagEnd: durHours > 0 ? `${11 + durHours}:00 UTC` : '—',
+        flagDuration: durHours > 0 ? `${durHours} hrs` : '0 hrs'
       };
     });
     if (url.pathname === '/api/wbgt-history/csv') {
-      const cols = ['date', 'peak_wbgt_f', 'dafi_flag', 'black_flag_start', 'black_flag_stop', 'black_flag_duration', 'max_temp_f', 'min_temp_f'];
+      const cols = ['date', 'peak_wbgt_f', 'dafi_flag', 'flag_start_time', 'flag_stop_time', 'flag_duration', 'max_temp_f', 'min_temp_f'];
       const rows = fallback.map(r => [
         r.date,
         r.peakWbgt,
         csvCell(r.flag),
-        csvCell(r.blackStart),
-        csvCell(r.blackEnd),
-        csvCell(r.blackDuration),
+        csvCell(r.flagStart),
+        csvCell(r.flagEnd),
+        csvCell(r.flagDuration),
         r.maxTemp,
         r.minTemp
       ]);

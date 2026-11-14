@@ -117,13 +117,18 @@ async function loadWBGTHistory(){
         'White': { bg: '#f0f3ee', text: '#29483d' }
       };
       const col = flagColors[row.flag] || flagColors.White;
+      const start = row.flagStart || row.blackStart || '—';
+      const stop = row.flagEnd || row.blackEnd || '—';
+      const duration = row.flagDuration || row.blackDuration || '0 hrs';
+      const isElevated = row.flag !== 'White' && start !== '—';
+
       tr.innerHTML = `
         <td><strong>${row.date}</strong></td>
         <td><strong>${row.peakWbgt} °F</strong></td>
         <td><span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:${col.bg};color:${col.text}">${row.flag} Flag</span></td>
-        <td style="${row.flag==='Black'?'font-weight:700;color:#b71c1c':''}">${row.blackStart || '—'}</td>
-        <td style="${row.flag==='Black'?'font-weight:700;color:#b71c1c':''}">${row.blackEnd || '—'}</td>
-        <td><span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;${row.flag==='Black'?'background:#ffebee;color:#b71c1c;font-weight:700':'color:#78867a'}">${row.blackDuration || '0 hrs'}</span></td>
+        <td style="${row.flag==='Black'?'font-weight:700;color:#b71c1c':row.flag==='Red'?'font-weight:700;color:#c62828':row.flag==='Yellow'?'font-weight:600;color:#b26a00':''}">${start}</td>
+        <td style="${row.flag==='Black'?'font-weight:700;color:#b71c1c':row.flag==='Red'?'font-weight:700;color:#c62828':row.flag==='Yellow'?'font-weight:600;color:#b26a00':''}">${stop}</td>
+        <td><span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;${row.flag==='Black'?'background:#ffebee;color:#b71c1c;font-weight:700':row.flag==='Red'?'background:#fbe9e7;color:#d84315;font-weight:700':row.flag==='Yellow'?'background:#fff8e1;color:#b26a00;font-weight:600':row.flag==='Green'?'background:#e8f5e9;color:#2e7d32;font-weight:600':'color:#78867a'}">${duration}</span></td>
         <td>${row.maxTemp} °F</td>
         <td>${row.minTemp} °F</td>
       `;
