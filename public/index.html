@@ -91,8 +91,8 @@
             <th>Date</th>
             <th>Peak WBGT (°F)</th>
             <th>DAFI 48-151 Flag</th>
-            <th>Flag Start Time</th>
-            <th>Flag Stop Time</th>
+            <th>Flag Start Time (EAT)</th>
+            <th>Flag Stop Time (EAT)</th>
             <th>Flag Duration</th>
             <th>High Temp (°F)</th>
             <th>Low Temp (°F)</th>
@@ -126,8 +126,8 @@
   <div class="panelhead">
     <div>
       <p class="eyebrow">EXCEL WORKBOOK ANALYTICS</p>
-      <h2>Diurnal Hourly Profile & EPA AQI Benchmarks</h2>
-      <p class="muted">24-hour diurnal curve with EPA PM2.5 thresholds (Moderate, SG, Unhealthy, Very Unhealthy, Hazardous)</p>
+      <h2>Diurnal Hourly Profile (EAT) & EPA AQI Benchmarks</h2>
+      <p class="muted">24-hour diurnal curve in East Africa Time (EAT, UTC+3) with EPA PM2.5 thresholds (Moderate, SG, Unhealthy, Very Unhealthy, Hazardous)</p>
     </div>
     <div class="analytics-header-controls">
       <label class="inline-select-label">Sensor:
@@ -166,7 +166,7 @@
   </div>
 </section>
 
-<section class="panel" id="analysis"><div class="panelhead"><div><p class="eyebrow">ROTATION INSIGHTS</p><h2 id="chart-title">Air quality summary</h2><p id="range" class="muted"></p></div><button id="graph" class="secondary">Download graph (PNG)</button></div><div class="chart"><canvas id="chart" role="img" aria-label="Air quality concentration trend"></canvas></div><details><summary>View chart data table</summary><div class="table-wrap"><table><thead><tr><th>UTC bucket</th><th>Mean</th><th>Minimum</th><th>Maximum</th><th>Devices</th></tr></thead><tbody id="table"></tbody></table></div></details></section>
+<section class="panel" id="analysis"><div class="panelhead"><div><p class="eyebrow">ROTATION INSIGHTS</p><h2 id="chart-title">Air quality summary</h2><p id="range" class="muted"></p></div><button id="graph" class="secondary">Download graph (PNG)</button></div><div class="chart"><canvas id="chart" role="img" aria-label="Air quality concentration trend"></canvas></div><details><summary>View chart data table</summary><div class="table-wrap"><table><thead><tr><th>EAT bucket</th><th>Mean</th><th>Minimum</th><th>Maximum</th><th>Devices</th></tr></thead><tbody id="table"></tbody></table></div></details></section>
 
 <section class="panel" id="reports"><div class="panelhead"><div><p class="eyebrow">REPORTING & ARCHIVE</p><h2>Take your data further.</h2></div></div><div class="report-grid"><article><h3>Download logged data</h3><p>CSV uses the applied graph filters and includes quality flags, sensor identity, and provenance.</p><button id="csv">Download CSV</button></article><article><h3>Restore historical records</h3><p>Import normalized historical CSV. Review the documented schema before confirming.</p><label>Historical CSV<input type="file" id="upload" accept=".csv,text/csv"></label><button id="import" class="secondary">Import CSV</button></article><article><h3>Synchronize instruments</h3><p>Fetch the last five days from TSI Link. The included worker logs data without a browser tab.</p><button id="sync" class="secondary">Sync TSI Link</button><small id="synced"></small></article></div></section>
 <footer>Local single-operator starter. Concentration summaries and WBGT flags follow military bioenvironmental standards (DAFI 48-151).</footer></main></body></html>

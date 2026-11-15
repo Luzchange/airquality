@@ -132,7 +132,7 @@ if(req.method==='GET'&&url.pathname==='/api/excel-analytics'){
   };
   const hourly = Array.from({length: 24}, (_, h) => ({
     hour: h,
-    label: h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h-12} PM`,
+    label: `${String(h).padStart(2, '0')}:00`,
     readings: [],
     moderate: 9,
     unhealthySG: 35.5,
@@ -155,7 +155,7 @@ if(req.method==='GET'&&url.pathname==='/api/excel-analytics'){
     if (!devices.includes(dName)) continue;
     if (targetDevice && r.deviceId !== targetDevice && dName !== targetDevice.toUpperCase()) continue;
     const dt = new Date(r.timestamp);
-    const h = dt.getUTCHours();
+    const h = (dt.getUTCHours() + 3) % 24;
     hourly[h].readings.push(r.value);
     const cat = categoryFromPm(r.value);
     if (categoryCounts[dName] && categoryCounts[dName][cat] != null) {
@@ -261,14 +261,19 @@ if(req.method==='GET'&&(url.pathname==='/api/wbgt-history'||url.pathname==='/api
           }
         }
         if (dayHours.length) {
-          flagStart = `${dayHours[0]} UTC`;
-          flagEnd = `${dayHours[dayHours.length - 1]} UTC`;
+          // Open-Meteo hourly timestamps are UTC by default; add 3 hours for East Africa Time (EAT, UTC+3)
+          const toEAT = (hhmm) => {
+            const [h, m] = hhmm.split(':').map(Number);
+            return `${String((h + 3) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+          };
+          flagStart = `${toEAT(dayHours[0])} EAT`;
+          flagEnd = `${toEAT(dayHours[dayHours.length - 1])} EAT`;
           flagDuration = `${dayHours.length} hrs`;
         } else {
-          // If hourly estimate is tight around peak, default to 2–4 hours centered on midday
+          // Midday peak in East Africa Time (EAT = UTC+3; 10:00-14:00 UTC corresponds to 13:00-17:00 EAT)
           const defDur = flag === 'Black' ? 4 : flag === 'Red' ? 3 : 2;
-          flagStart = '10:00 UTC';
-          flagEnd = `${10 + defDur}:00 UTC`;
+          flagStart = '13:00 EAT';
+          flagEnd = `${13 + defDur}:00 EAT`;
           flagDuration = `${defDur} hrs`;
         }
       }
@@ -317,8 +322,8 @@ if(req.method==='GET'&&(url.pathname==='/api/wbgt-history'||url.pathname==='/api
         minTemp: +(base - 8).toFixed(1),
         peakWbgt,
         flag,
-        flagStart: durHours > 0 ? '11:00 UTC' : '—',
-        flagEnd: durHours > 0 ? `${11 + durHours}:00 UTC` : '—',
+        flagStart: durHours > 0 ? '14:00 EAT' : '—',
+        flagEnd: durHours > 0 ? `${14 + durHours}:00 EAT` : '—',
         flagDuration: durHours > 0 ? `${durHours} hrs` : '0 hrs'
       };
     });
