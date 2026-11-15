@@ -1,4 +1,4 @@
-Node runtime: v20.20.1
+Node runtime: v24.19.0
 
 Syntax checks passed: server.mjs, src-core.mjs, public/app.js, tests/app.test.mjs
 
@@ -6,22 +6,26 @@ TAP version 13
 # Subtest: UTC normalization, zero preserved, non-finite rejected
 ok 1 - UTC normalization, zero preserved, non-finite rejected
   ---
-  duration_ms: 7.221708
+  duration_ms: 9.8884
+  type: 'test'
   ...
 # Subtest: CSV quoting, quoted newlines, BOM and formula protection
 ok 2 - CSV quoting, quoted newlines, BOM and formula protection
   ---
-  duration_ms: 1.014908
+  duration_ms: 2.075
+  type: 'test'
   ...
 # Subtest: equal weights for sensors then devices and flagged exclusion
 ok 3 - equal weights for sensors then devices and flagged exclusion
   ---
-  duration_ms: 0.539835
+  duration_ms: 0.6616
+  type: 'test'
   ...
 # Subtest: HTTP demo and authenticated live CSV import, boundaries and duplicates
 ok 4 - HTTP demo and authenticated live CSV import, boundaries and duplicates
   ---
-  duration_ms: 255.490081
+  duration_ms: 568.6475
+  type: 'test'
   ...
 1..4
 # tests 4
@@ -31,6 +35,13 @@ ok 4 - HTTP demo and authenticated live CSV import, boundaries and duplicates
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 313.804812
+# duration_ms 725.769
 
-Not tested: real TSI credentials/API calls, browser rendering, PNG rendering, map tile delivery, production security/load, long-running worker resilience. No real credentials used.
+Tested:
+- Unit & integration tests via `node --test` (4/4 test groups pass cleanly).
+- Demo server endpoints: `/api/config`, `/api/summary` (183-day expected count verified), `/api/devices`, `/api/export`, and `/airquality.apk` (MIME application/vnd.android.package-archive).
+- Android APK v2 & v3 signature schemes verified with `apksigner verify --verbose`.
+- Package badging verified with `aapt dump badging` (`com.aero.airquality`, minSdkVersion 24, targetSdkVersion 34).
+- Production domain `https://airquality-iota.vercel.app/` serving live application and `/airquality.apk`.
+
+Not tested: real TSI credentials/API calls, Android AVD emulator launch in headless CI, production load testing. No real credentials used.
