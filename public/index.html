@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Aero / Air quality</title><link rel="stylesheet" href="/style.css"><script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script><script defer src="/app.js"></script></head><body><aside><a class="brand" href="/">aero /</a><p>ENVIRONMENTAL INTELLIGENCE</p><nav><a href="#overview">Overview</a><a href="#thermal">Thermal stress (WBGT)</a><a href="#network">Sensors</a><a href="#analytics">Diurnal & AQI charts</a><a href="#analysis">Rotation analysis</a><a href="#reports">Reports & archive</a><a href="/airquality.apk" download style="color:#27945d;font-weight:600">📱 Download Android App</a></nav></aside><main id="overview"><header><div><p class="eyebrow">WORKSPACE / AIR QUALITY</p><h1>A clearer view of your environment.</h1><p class="muted">Monitoring, thermal stress compliance, and sensor analytics in one place.</p></div><div style="display:flex;gap:8px;align-items:center"><a href="/airquality.apk" download class="dl-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:6px;background:#27945d;color:#fff;font-size:13px;font-weight:600">📱 Download APK</a><span id="mode" class="badge">Loading</span></div></header><div id="notice" role="status" aria-live="polite">Loading measurements…</div>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Aero / Air quality</title><link rel="stylesheet" href="/style.css"><script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script><script defer src="/app.js"></script></head><body><aside><a class="brand" href="/">aero /</a><p>ENVIRONMENTAL INTELLIGENCE</p><nav><a href="#overview">Overview</a><a href="#thermal">Thermal stress (WBGT)</a><a href="#network">Sensors</a><a href="#analytics">Diurnal & AQI charts</a><a href="#health-risk">Health Risk & Demographics</a><a href="#analysis">Rotation analysis</a><a href="#reports">Reports & archive</a><a href="/airquality.apk" download style="color:#27945d;font-weight:600">📱 Download Android App</a></nav></aside><main id="overview"><header><div><p class="eyebrow">WORKSPACE / AIR QUALITY</p><h1>A clearer view of your environment.</h1><p class="muted">Monitoring, thermal stress compliance, and sensor analytics in one place.</p></div><div style="display:flex;gap:8px;align-items:center"><a href="/airquality.apk" download class="dl-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:6px;background:#27945d;color:#fff;font-size:13px;font-weight:600">📱 Download APK</a><span id="mode" class="badge">Loading</span></div></header><div id="notice" role="status" aria-live="polite">Loading measurements…</div>
 
 <section class="panel wbgt-panel" id="thermal">
   <div class="panelhead">
@@ -162,6 +162,151 @@
         <div class="loc-item"><strong>SCRAPPY:</strong> Camp Simba</div>
         <div class="loc-item muted"><strong>VELMA / FRED:</strong> Standby (Offline)</div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="health-risk">
+  <div class="panelhead">
+    <div>
+      <p class="eyebrow">HEALTH RISK COMMUNICATION TOOL & DEMOGRAPHICS</p>
+      <h2>Population at Risk & Exposure Guidance</h2>
+      <p class="muted">Bioenvironmental health advisories, susceptible demographic cohorts, and clinical risk mitigation per EPA AQI & Air Quality Health Index (AQHI) standards.</p>
+    </div>
+    <div class="health-risk-badge" id="current-health-tier-badge">Health Risk: Evaluating…</div>
+  </div>
+
+  <div class="health-demo-grid">
+    <div class="health-demo-card">
+      <div class="demo-card-header">
+        <span class="demo-icon">🫁</span>
+        <div>
+          <h3>Respiratory & Pulmonary Conditions</h3>
+          <span class="demo-cohort-tag tag-high-risk">High Clinical Vulnerability</span>
+        </div>
+      </div>
+      <p class="demo-desc">Individuals with <strong>Asthma</strong>, <strong>Chronic Obstructive Pulmonary Disease (COPD)</strong>, chronic bronchitis, emphysema, or recent respiratory infections.</p>
+      <div class="demo-impact">
+        <strong>Biological Mechanism:</strong> Fine particulate matter (\(PM_{2.5}\)) penetrates deep into alveolar spaces, triggering severe bronchospasms, airway hyper-responsiveness, and acute exacerbations.
+      </div>
+      <div class="demo-action">
+        <strong>Recommended Action:</strong> Maintain rescue inhaler at immediate reach; avoid vigorous outdoor training or mission activities during elevated/unhealthy tiers; use HEPA-filtered indoor shelters.
+      </div>
+    </div>
+
+    <div class="health-demo-card">
+      <div class="demo-card-header">
+        <span class="demo-icon">❤️</span>
+        <div>
+          <h3>Cardiovascular & Cerebrovascular</h3>
+          <span class="demo-cohort-tag tag-high-risk">High Clinical Vulnerability</span>
+        </div>
+      </div>
+      <p class="demo-desc">Personnel with <strong>Ischemic Heart Disease</strong>, prior myocardial infarction, <strong>Hypertension</strong>, congestive heart failure, arrhythmias, or peripheral vascular disease.</p>
+      <div class="demo-impact">
+        <strong>Biological Mechanism:</strong> Ultrafine particles enter systemic circulation, escalating vascular oxidative stress, autonomic imbalance, arterial stiffness, plaque instability, and thrombotic risk.
+      </div>
+      <div class="demo-action">
+        <strong>Recommended Action:</strong> Monitor heart rate and blood pressure; strictly limit physical exertion outdoors when \(PM_{2.5} > 35.4\ \mu\text{g/m}^3\); report chest tightness, palpitations, or dyspnea immediately.
+      </div>
+    </div>
+
+    <div class="health-demo-card">
+      <div class="demo-card-header">
+        <span class="demo-icon">🛡️</span>
+        <div>
+          <h3>Outdoor Workers & Tactical Personnel</h3>
+          <span class="demo-cohort-tag tag-elevated-risk">High Exposure Dose</span>
+        </div>
+      </div>
+      <p class="demo-desc"><strong>Flightline maintenance (COCO)</strong>, <strong>Entry Control Point sentries (ECP)</strong>, security forces, heavy construction, and ruck-march personnel.</p>
+      <div class="demo-impact">
+        <strong>Biological Mechanism:</strong> Elevated minute ventilation (respiratory tidal volume \(\times\) rate increases 5–10x under heavy exertion) exponentially inflates cumulative inhaled pollutant dose.
+      </div>
+      <div class="demo-action">
+        <strong>Recommended Action:</strong> Enforce DAFI 48-151 work/rest cycles; rotate personnel out of high particulate zones; wear N95/elastomeric respiratory protection when mission dictates operations in Unhealthy+ tiers.
+      </div>
+    </div>
+
+    <div class="health-demo-card">
+      <div class="demo-card-header">
+        <span class="demo-icon">👶</span>
+        <div>
+          <h3>Age Demographics & Developmental Stages</h3>
+          <span class="demo-cohort-tag tag-sensitive-risk">Susceptible Biology</span>
+        </div>
+      </div>
+      <p class="demo-desc"><strong>Pediatric populations (children & adolescents)</strong> and <strong>Older adults (65+)</strong>, as well as pregnant personnel.</p>
+      <div class="demo-impact">
+        <strong>Biological Mechanism:</strong> Developing pulmonary systems breathe more air per pound of body weight. Older adults experience diminished physiologic reserves and baseline subclinical cardiovascular vulnerability.
+      </div>
+      <div class="demo-action">
+        <strong>Recommended Action:</strong> Reschedule outdoor physical education/activities during periods of particulate elevation; utilize conditioned indoor spaces with positive filtration.
+      </div>
+    </div>
+  </div>
+
+  <div class="health-aqi-breakdown">
+    <div class="aqi-breakdown-title">
+      <h3>EPA AQI Health Communication & Demographic Action Framework</h3>
+      <span class="muted" style="font-size:12px;">Real-time threshold triggers mapped to population risk mitigation</span>
+    </div>
+    <div class="table-wrap">
+      <table class="health-risk-table">
+        <thead>
+          <tr>
+            <th>AQI Category</th>
+            <th>PM2.5 (24-hr)</th>
+            <th>Populations at Risk</th>
+            <th>Health Communication & Advisory Statements</th>
+            <th>Operational Mitigation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="tier-good">
+            <td><strong>Good</strong></td>
+            <td>0.0 – 9.0 µg/m³</td>
+            <td>None</td>
+            <td>Air quality is satisfactory and poses little or no risk to the general or sensitive public.</td>
+            <td>Normal unrestricted baseline operations.</td>
+          </tr>
+          <tr class="tier-moderate">
+            <td><strong>Moderate</strong></td>
+            <td>9.1 – 35.4 µg/m³</td>
+            <td>Unusually sensitive individuals with preexisting pulmonary/cardiac illness.</td>
+            <td>Air quality is acceptable; however, very sensitive individuals may experience mild respiratory irritation.</td>
+            <td>Sensitive individuals should observe symptoms and consider reducing prolonged heavy exertion outdoors.</td>
+          </tr>
+          <tr class="tier-usg">
+            <td><strong>Unhealthy for Sensitive Groups</strong></td>
+            <td>35.5 – 55.4 µg/m³</td>
+            <td>Individuals with asthma, COPD, heart disease; outdoor workers; children & older adults.</td>
+            <td>Members of sensitive groups are at elevated risk of acute health effects; general public is less likely to be affected.</td>
+            <td>Sensitive cohorts reduce strenuous outdoor activity; take frequent breaks; relocate workouts indoors.</td>
+          </tr>
+          <tr class="tier-unhealthy">
+            <td><strong>Unhealthy</strong></td>
+            <td>55.5 – 125.4 µg/m³</td>
+            <td>General population + all sensitive demographic cohorts.</td>
+            <td>Everyone may begin to experience health effects; members of sensitive groups may experience serious effects.</td>
+            <td>Curtail prolonged or heavy exertion for all personnel; sensitive cohorts avoid outdoor activity; enforce mission rest shelters.</td>
+          </tr>
+          <tr class="tier-veryunhealthy">
+            <td><strong>Very Unhealthy</strong></td>
+            <td>125.5 – 225.4 µg/m³</td>
+            <td>Entire population at high risk of adverse reactions.</td>
+            <td>Health alert: risk of health effects is substantially increased across the entire populace.</td>
+            <td>Suspend non-essential outdoor physical training and missions; enforce indoor air filtration and N95 protection for essential guards.</td>
+          </tr>
+          <tr class="tier-hazardous">
+            <td><strong>Hazardous</strong></td>
+            <td>&gt; 225.4 µg/m³</td>
+            <td>Entire population (Emergency condition).</td>
+            <td>Health warning of emergency conditions: severe systemic impacts and impairment of physical capacities.</td>
+            <td>Mandatory shelter-in-place with sealed HVAC HEPA circulation; mission-critical operations strictly require respiratory protection.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
